@@ -222,24 +222,24 @@ export default function TetrisPage() {
   }, [board, piece])
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-6">
-      <div className="mb-4 flex items-center justify-between">
+    <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-3 py-4 sm:px-4 sm:py-6">
+      <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
         <div>
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
             ← ホーム
           </Link>
-          <h1 className="mt-1 text-2xl font-bold text-gray-900">テトリス</h1>
+          <h1 className="mt-1 text-xl font-bold text-gray-900 sm:text-2xl">テトリス</h1>
         </div>
         <button
           onClick={reset}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+          className="shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
         >
           リセット
         </button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
-        <div className="relative rounded-xl border border-gray-200 bg-gray-900 p-2 shadow-sm">
+      <div className="grid min-h-0 flex-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
+        <div className="relative mx-auto h-[min(62vh,calc((100vw-1.5rem)*2),640px)] w-[min(31vh,calc(100vw-1.5rem),320px)] max-w-full rounded-xl border border-gray-200 bg-gray-900 p-1.5 shadow-sm sm:h-auto sm:w-full sm:p-2">
           <div className="grid aspect-[10/20] grid-cols-10 gap-1">
             {displayBoard.flatMap((row, y) =>
               row.map((cell, x) => (
@@ -266,7 +266,7 @@ export default function TetrisPage() {
           )}
         </div>
 
-        <aside className="space-y-3">
+        <aside className="grid grid-cols-2 gap-2 sm:block sm:space-y-3">
           <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <div className="text-xs font-semibold text-gray-500">SCORE</div>
             <div className="text-2xl font-bold text-gray-900">{score}</div>
@@ -275,7 +275,7 @@ export default function TetrisPage() {
             <div className="text-xs font-semibold text-gray-500">LINES</div>
             <div className="text-2xl font-bold text-gray-900">{lines}</div>
           </div>
-          <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="col-span-2 rounded-xl border border-gray-100 bg-white p-3 shadow-sm sm:p-4">
             <label htmlFor="difficulty" className="flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-500">DIFFICULTY</span>
               <span className="text-lg font-bold text-gray-900">{difficulty}</span>
@@ -298,14 +298,14 @@ export default function TetrisPage() {
           <button
             onClick={() => setIsRunning((current) => !current)}
             disabled={isGameOver}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="col-span-2 w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isRunning ? '一時停止' : '再開'}
           </button>
         </aside>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-3 grid shrink-0 grid-cols-3 gap-2 pb-[env(safe-area-inset-bottom)]">
         <button onClick={() => move(-1, 0)} className="rounded-lg bg-gray-100 py-3 font-bold text-gray-700">
           ←
         </button>
