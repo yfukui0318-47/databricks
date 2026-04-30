@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: '資格対策ワークスペース',
-  description: '資格学習の演習、復習、AI総括をまとめた学習アプリ',
+  title: 'Knowledge Growth Hub',
+  description: 'A learning workspace for practice, review, and AI-assisted reflection.',
 }
 
 export default function RootLayout({

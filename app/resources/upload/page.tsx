@@ -31,10 +31,10 @@ export default function ResourceUploadPage() {
       })
       const data = await response.json()
 
-      if (!response.ok) throw new Error(data.error ?? 'アップロードに失敗しました。')
+      if (!response.ok) throw new Error(data.error ?? 'The entry could not be saved.')
       router.push('/resources')
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : 'アップロードに失敗しました。')
+      setError(uploadError instanceof Error ? uploadError.message : 'The entry could not be saved.')
     } finally {
       setIsUploading(false)
     }
@@ -43,41 +43,41 @@ export default function ResourceUploadPage() {
   return (
     <main className="mx-auto max-w-xl px-4 py-8">
       <Link href="/resources" className="text-sm text-slate-500 transition-colors hover:text-slate-700">
-        ← 参考資料共有
+        ← Knowledge Library
       </Link>
 
       <section className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h1 className="text-xl font-bold text-slate-950">資料を追加</h1>
+        <h1 className="text-xl font-bold text-slate-950">Add Knowledge Entry</h1>
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
             <label htmlFor="title" className="mb-1 block text-sm font-semibold text-slate-700">
-              タイトル
+              Title
             </label>
             <input
               id="title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-cyan-500"
-              placeholder="未入力の場合はファイル名を使います"
+              placeholder="Leave blank to use the file name"
             />
           </div>
 
           <div>
             <label htmlFor="description" className="mb-1 block text-sm font-semibold text-slate-700">
-              メモ
+              Notes
             </label>
             <textarea
               id="description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               className="min-h-24 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-cyan-500"
-              placeholder="何の調査資料か、どのセクションに役立つかなど"
+              placeholder="What this captures, when to revisit it, or where it helps"
             />
           </div>
 
           <div>
             <label htmlFor="file" className="mb-1 block text-sm font-semibold text-slate-700">
-              PDFファイル
+              PDF file
             </label>
             <input
               id="file"
@@ -95,7 +95,7 @@ export default function ResourceUploadPage() {
             disabled={!file || isUploading}
             className="w-full rounded-lg bg-cyan-500 px-4 py-2.5 text-sm font-bold text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
           >
-            {isUploading ? 'アップロード中...' : '共有する'}
+            {isUploading ? 'Saving...' : 'Save entry'}
           </button>
         </form>
       </section>

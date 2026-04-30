@@ -21,10 +21,10 @@ export default function ResourcesPage() {
       try {
         const response = await fetch('/api/resources')
         const data = await response.json()
-        if (!response.ok) throw new Error(data.error ?? '参考資料を読み込めませんでした。')
+        if (!response.ok) throw new Error(data.error ?? 'Knowledge entries could not be loaded.')
         setResources(data)
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : '参考資料を読み込めませんでした。')
+        setError(loadError instanceof Error ? loadError.message : 'Knowledge entries could not be loaded.')
       } finally {
         setIsLoading(false)
       }
@@ -45,13 +45,13 @@ export default function ResourcesPage() {
       })
       const data = await response.json()
 
-      if (!response.ok) throw new Error(data.error ?? '資料を削除できませんでした。')
+      if (!response.ok) throw new Error(data.error ?? 'The entry could not be deleted.')
 
       setResources((currentResources) =>
         currentResources.filter((currentResource) => currentResource.id !== resource.id),
       )
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : '資料を削除できませんでした。')
+      setError(deleteError instanceof Error ? deleteError.message : 'The entry could not be deleted.')
     } finally {
       setDeletingId(null)
     }
@@ -64,16 +64,16 @@ export default function ResourcesPage() {
           <Link href="/" className="text-sm text-slate-500 transition-colors hover:text-slate-700">
             ← ホーム
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-slate-950">参考資料共有</h1>
+          <h1 className="mt-2 text-2xl font-bold text-slate-950">Knowledge Library</h1>
           <p className="mt-1 text-sm text-slate-500">
-            AIに関して調査した内容をまとめたPDF資料を共有し、知見の蓄積として参照できます。
+            Keep useful findings, notes, and artifacts in one place so knowledge compounds over time.
           </p>
         </div>
         <Link
           href="/resources/upload"
           className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-slate-950 transition-colors hover:bg-cyan-400"
         >
-          資料を追加
+          Add entry
         </Link>
       </div>
 
@@ -83,7 +83,7 @@ export default function ResourcesPage() {
         ) : error ? (
           <div className="p-6 text-sm text-red-500">{error}</div>
         ) : resources.length === 0 ? (
-          <div className="p-6 text-sm text-slate-500">共有資料はまだありません。</div>
+          <div className="p-6 text-sm text-slate-500">No knowledge entries yet.</div>
         ) : (
           <div className="divide-y divide-slate-100">
             {resources.map((resource) => (

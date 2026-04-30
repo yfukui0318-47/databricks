@@ -169,10 +169,10 @@ export default function HomePage() {
             <div className="max-w-2xl">
               <p className="text-sm font-semibold text-cyan-300">{selectedTrackLabel}</p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-                資格対策ワークスペース
+                Knowledge Growth Hub
               </h1>
               <p className="mt-3 text-sm leading-6 text-slate-300">
-                複数の資格学習を見据えて、演習、復習、AI総括までを一つの流れで進めます。
+                Build durable understanding through practice, review, and AI-assisted reflection.
               </p>
             </div>
             <div className="grid min-w-64 grid-cols-3 gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
@@ -514,7 +514,7 @@ export default function HomePage() {
 
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              資格トラック
+              Learning Tracks
             </h2>
             <div className="mt-3 space-y-3">
               {certifications.map((certification) => {
@@ -564,9 +564,9 @@ export default function HomePage() {
                 onClick={() => router.push('/resources')}
                 className="w-full rounded-lg border border-slate-200 px-3 py-3 text-left transition-colors hover:bg-slate-50"
               >
-                <div className="font-semibold text-slate-800">参考資料共有</div>
+                <div className="font-semibold text-slate-800">Knowledge Library</div>
                 <div className="mt-1 text-xs text-slate-500">
-                  リサーチ資料をPDFで共有
+                  Save and revisit learning notes
                 </div>
               </button>
               <a
