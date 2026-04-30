@@ -11,6 +11,7 @@ export type QuizMode =
   | 'random'
   | 'section'
   | 'wrong'
+  | 'historyWrong'
   | 'mock'
   | 'all'
 
@@ -23,6 +24,7 @@ export type AnswerRecord = {
 
 export type QuizSession = {
   mode: QuizMode
+  certificationId: string
   sectionFilter?: string
   questionCount?: number
   questions: Question[]
@@ -32,6 +34,19 @@ export type QuizSession = {
   endTime?: number
   isFinished: boolean
   isPaused: boolean
+  historySaved?: boolean
+}
+
+export type WrongAnswerSession = {
+  id: string
+  date: number
+  certificationId?: string
+  sectionFilter?: string
+  mode: QuizMode
+  totalQuestions: number
+  correctCount: number
+  elapsedSeconds?: number
+  wrongAnswers: Pick<AnswerRecord, 'questionId' | 'selectedAnswer'>[]
 }
 
 export type QuizStats = {
@@ -40,4 +55,5 @@ export type QuizStats = {
   wrongQuestionIds: number[]
   favoriteQuestionIds: number[]
   answerHistory: AnswerRecord[]
+  wrongSessionHistory: WrongAnswerSession[]
 }

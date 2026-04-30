@@ -3,11 +3,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Question, QuizMode, AnswerRecord, QuizSession, QuizStats } from '@/types'
-import { questions as allQuestions } from '@/data/questions'
+import { activeCertification } from '@/data/certifications'
+import { getQuestionsForCertification } from '@/data/questionBanks'
 
 const SECONDS_PER_MOCK_QUESTION = 120
 export const RANDOM_QUIZ_MIN_COUNT = 10
 export const RANDOM_QUIZ_MAX_COUNT = 300
+const WRONG_SESSION_HISTORY_LIMIT = 30
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -24,7 +26,12 @@ type QuizStoreState = {
   timerSeconds: number
 
   // Actions
-  startQuiz: (mode: QuizMode, sectionFilter?: string, questionCount?: number) => void
+  startQuiz: (
+    mode: QuizMode,
+    sectionFilter?: string,
+    questionCount?: number,
+    certificationId?: string,
+  ) => void
   answerQuestion: (selectedAnswer: string) => void
   nextQuestion: () => void
   finishQuiz: () => void
@@ -42,6 +49,54 @@ const defaultStats: QuizStats = {
   wrongQuestionIds: [],
   favoriteQuestionIds: [],
   answerHistory: [],
+  wrongSessionHistory: [],
+}
+
+function getWrongQuestionIdsFromHistory(stats: QuizStats): number[] {
+  const history = stats.wrongSessionHistory ?? []
+  const wrongAnswerHistory = (stats.answerHistory ?? [])
+    .filter((answer) => !answer.isCorrect)
+    .map((answer) => answer.questionId)
+  return Array.from(
+    new Set(
+      [
+        ...wrongAnswerHistory,
+        ...history.flatMap((item) => item.wrongAnswers.map((answer) => answer.questionId)),
+      ],
+    ),
+  )
+}
+
+function saveWrongSessionHistory(session: QuizSession, stats: QuizStats): QuizStats {
+  if (session.historySaved) return stats
+
+  const answered = Object.values(session.answers)
+  const wrongAnswers = answered
+    .filter((answer) => !answer.isCorrect)
+    .map(({ questionId, selectedAnswer }) => ({ questionId, selectedAnswer }))
+
+  if (wrongAnswers.length === 0) return stats
+
+  const endTime = session.endTime ?? Date.now()
+  const record = {
+    id: `${session.startTime}-${endTime}`,
+    date: endTime,
+    certificationId: session.certificationId,
+    sectionFilter: session.sectionFilter,
+    mode: session.mode,
+    totalQuestions: session.questions.length,
+    correctCount: answered.filter((answer) => answer.isCorrect).length,
+    elapsedSeconds: Math.floor((endTime - session.startTime) / 1000),
+    wrongAnswers,
+  }
+
+  return {
+    ...stats,
+    wrongSessionHistory: [record, ...(stats.wrongSessionHistory ?? [])].slice(
+      0,
+      WRONG_SESSION_HISTORY_LIMIT,
+    ),
+  }
 }
 
 export const useQuizStore = create<QuizStoreState>()(
@@ -51,12 +106,15 @@ export const useQuizStore = create<QuizStoreState>()(
       stats: defaultStats,
       timerSeconds: 0,
 
-      startQuiz: (mode, sectionFilter, questionCount) => {
+      startQuiz: (mode, sectionFilter, questionCount, certificationId = activeCertification.id) => {
         const { stats } = get()
+        const allQuestions = getQuestionsForCertification(certificationId)
         let pool: Question[] = []
+        const minQuestionCount =
+          mode === 'wrong' || mode === 'historyWrong' ? 1 : RANDOM_QUIZ_MIN_COUNT
         const normalizedQuestionCount = Math.min(
           RANDOM_QUIZ_MAX_COUNT,
-          Math.max(RANDOM_QUIZ_MIN_COUNT, questionCount ?? RANDOM_QUIZ_MAX_COUNT),
+          Math.max(minQuestionCount, questionCount ?? RANDOM_QUIZ_MAX_COUNT),
         )
 
         if (mode === 'random') {
@@ -74,6 +132,12 @@ export const useQuizStore = create<QuizStoreState>()(
             0,
             normalizedQuestionCount,
           )
+        } else if (mode === 'historyWrong') {
+          const historyWrongIds = new Set(getWrongQuestionIdsFromHistory(stats))
+          pool = shuffle(allQuestions.filter((q) => historyWrongIds.has(q.id))).slice(
+            0,
+            normalizedQuestionCount,
+          )
         } else if (mode === 'mock') {
           const source = sectionFilter
             ? allQuestions.filter((q) => q.section === sectionFilter)
@@ -86,6 +150,7 @@ export const useQuizStore = create<QuizStoreState>()(
         set({
           session: {
             mode,
+            certificationId,
             sectionFilter,
             questionCount: mode === 'random' || mode === 'mock' ? pool.length : undefined,
             questions: pool,
@@ -94,6 +159,7 @@ export const useQuizStore = create<QuizStoreState>()(
             startTime: Date.now(),
             isFinished: false,
             isPaused: false,
+            historySaved: false,
           },
           timerSeconds: mode === 'mock' ? pool.length * SECONDS_PER_MOCK_QUESTION : 0,
         })
@@ -139,20 +205,37 @@ export const useQuizStore = create<QuizStoreState>()(
       },
 
       nextQuestion: () => {
-        const { session } = get()
+        const { session, stats } = get()
         if (!session) return
         const nextIndex = session.currentIndex + 1
         if (nextIndex >= session.questions.length) {
-          set({ session: { ...session, isFinished: true, endTime: Date.now() } })
+          const finishedSession = {
+            ...session,
+            isFinished: true,
+            endTime: Date.now(),
+          }
+          set({
+            session: { ...finishedSession, historySaved: true },
+            stats: saveWrongSessionHistory(finishedSession, stats),
+          })
         } else {
           set({ session: { ...session, currentIndex: nextIndex } })
         }
       },
 
       finishQuiz: () => {
-        const { session } = get()
+        const { session, stats } = get()
         if (!session) return
-        set({ session: { ...session, isFinished: true, isPaused: false, endTime: Date.now() } })
+        const finishedSession = {
+          ...session,
+          isFinished: true,
+          isPaused: false,
+          endTime: Date.now(),
+        }
+        set({
+          session: { ...finishedSession, historySaved: true },
+          stats: saveWrongSessionHistory(finishedSession, stats),
+        })
       },
 
       pauseQuiz: () => {

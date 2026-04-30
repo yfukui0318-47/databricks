@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuizStore } from '@/store/quizStore'
-import { questions as allQuestions } from '@/data/questions'
+import { getQuestionsForCertification } from '@/data/questionBanks'
 
 const PASS_THRESHOLD = 0.7
 
@@ -40,12 +40,18 @@ export default function ResultsPage() {
     [answered],
   )
   const sessionWrong = useMemo(
-    () => allQuestions.filter((q) => sessionWrongIds.includes(q.id)),
-    [sessionWrongIds],
+    () =>
+      session
+        ? getQuestionsForCertification(session.certificationId ?? '').filter((q) =>
+            sessionWrongIds.includes(q.id),
+          )
+        : [],
+    [session, sessionWrongIds],
   )
   const summaryPayload = useMemo(
     () => ({
       mode: session?.mode ?? '',
+      sectionFilter: session?.sectionFilter,
       totalQuestions: totalQ,
       answeredCount: answered.length,
       correctCount,
@@ -94,8 +100,9 @@ export default function ResultsPage() {
   const handleRetry = () => {
     if (!session) return
     const { mode, sectionFilter, questionCount } = session
+    const { certificationId } = session
     resetSession()
-    startQuiz(mode, sectionFilter, questionCount)
+    startQuiz(mode, sectionFilter, questionCount, certificationId)
     router.push('/quiz')
   }
 
@@ -124,7 +131,13 @@ export default function ResultsPage() {
           {/* Result label */}
           <div className="mb-6 text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">
-              {session.mode === 'mock' ? '模擬試験' : session.mode === 'wrong' ? '苦手問題' : '演習'} 結果
+              {session.mode === 'mock'
+                ? '模擬試験'
+                : session.mode === 'wrong'
+                ? '苦手問題'
+                : session.mode === 'historyWrong'
+                ? '履歴ミス'
+                : '演習'} 結果
             </p>
             <p className={`mt-1 text-lg font-bold ${accentColor}`}>
               {passed === true
@@ -237,19 +250,25 @@ export default function ResultsPage() {
             <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
               {sessionWrong.map((q) => {
                 const rec = session.answers[q.id]
+                const selectedChoice = q.choices.find((choice) => choice.key === rec?.selectedAnswer)
+                const correctChoice = q.choices.find((choice) => choice.key === q.answer)
                 return (
                   <div key={q.id} className="px-4 py-3.5 space-y-1.5">
                     <p className="text-sm font-medium text-slate-700">
                       <span className="mr-1.5 text-xs font-normal text-slate-400">Q{q.id}</span>
                       {q.question.length > 70 ? q.question.slice(0, 70) + '…' : q.question}
                     </p>
-                    <div className="flex flex-wrap gap-3 text-xs">
-                      <span className="flex items-center gap-1 text-rose-500">
-                        <span className="font-medium">あなた:</span> {rec?.selectedAnswer}
-                      </span>
-                      <span className="flex items-center gap-1 text-emerald-600">
-                        <span className="font-medium">正解:</span> {q.answer}
-                      </span>
+                    <div className="space-y-1 text-xs">
+                      <p className="text-rose-500">
+                        <span className="font-medium">あなた:</span>{' '}
+                        {rec?.selectedAnswer}
+                        {selectedChoice ? ` - ${selectedChoice.text}` : ''}
+                      </p>
+                      <p className="text-emerald-600">
+                        <span className="font-medium">正解:</span>{' '}
+                        {q.answer}
+                        {correctChoice ? ` - ${correctChoice.text}` : ''}
+                      </p>
                     </div>
                     <p className="text-xs leading-relaxed text-slate-500">
                       {q.explanation.length > 120 ? q.explanation.slice(0, 120) + '…' : q.explanation}

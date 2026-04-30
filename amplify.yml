@@ -6,11 +6,11 @@ frontend:
         - npm ci
     build:
       commands:
-        - env | grep -e NEXT_PUBLIC_SUPABASE_URL >> .env.production
-        - env | grep -e NEXT_PUBLIC_SUPABASE_ANON_KEY >> .env.production
-        - env | grep -e SUPABASE_SERVICE_ROLE_KEY >> .env.production
-        - env | grep -e GEMINI_API_KEY >> .env.production
-        - env | grep -e MOCK_GEMINI >> .env.production
+        - printenv NEXT_PUBLIC_SUPABASE_URL | sed 's/^/NEXT_PUBLIC_SUPABASE_URL=/' >> .env.production
+        - printenv NEXT_PUBLIC_SUPABASE_ANON_KEY | sed 's/^/NEXT_PUBLIC_SUPABASE_ANON_KEY=/' >> .env.production
+        - printenv SUPABASE_SERVICE_ROLE_KEY | sed 's/^/SUPABASE_SERVICE_ROLE_KEY=/' >> .env.production
+        - printenv GEMINI_API_KEY | sed 's/^/GEMINI_API_KEY=/' >> .env.production
+        - printenv MOCK_GEMINI | sed 's/^/MOCK_GEMINI=/' >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next

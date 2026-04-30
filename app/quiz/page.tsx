@@ -41,6 +41,8 @@ export default function QuizPage() {
       ? (session.sectionFilter?.replace(/Section \d+: /, '') ?? 'セクション')
       : session.mode === 'wrong'
       ? '苦手問題'
+      : session.mode === 'historyWrong'
+      ? '履歴ミス'
       : 'ランダム演習'
 
   return (

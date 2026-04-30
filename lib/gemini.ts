@@ -20,6 +20,7 @@ export function shouldUseMockGemini() {
 
 type QuizSummaryInput = {
   mode: string
+  sectionFilter?: string
   totalQuestions: number
   answeredCount: number
   correctCount: number
@@ -38,9 +39,12 @@ type QuizSummaryInput = {
 export function createMockQuizSummary(input: QuizSummaryInput) {
   const weakSections = Array.from(new Set(input.wrongQuestions.map((question) => question.section))).slice(0, 3)
   const accuracyText = `${Math.round(input.accuracy * 100)}%`
+  const isSingleSectionPractice = Boolean(input.sectionFilter)
 
   return `今回の正解率は${accuracyText}でした。まずは回答済みの問題を振り返り、間違えた問題では「なぜその選択肢を選んだのか」を確認すると改善しやすくなります。${
-    weakSections.length > 0
+    isSingleSectionPractice
+      ? `${input.sectionFilter} の中で、今回間違えた設問の解説と関連概念を重点的に確認しましょう。`
+      : weakSections.length > 0
       ? `特に ${weakSections.join('、')} の復習を優先しましょう。`
       : '不正解が少ないため、次は解答速度と安定感を意識するとよさそうです。'
   } 次回は不正解問題を中心に短く復習してから、同じ条件でもう一度演習するのがおすすめです。`
@@ -66,9 +70,13 @@ export function buildQuizSummaryPrompt(input: QuizSummaryInput) {
 以下の演習結果を見て、学習者に向けて日本語で総括してください。
 内容は4〜6文で、良かった点、弱点、次にやるべき復習方針を具体的に述べてください。
 責める表現は避け、実行しやすいアドバイスにしてください。
+sectionFilter がある場合は、そのセクションから出題されていることが前提です。
+そのため「不正解が特定セクションに集中している」「このセクションが弱点」といった、出題範囲に由来する当たり前の指摘はしないでください。
+代わりに、不正解問題の本文・正解・解説から、同じセクション内で理解が浅そうな概念や復習すべき操作を述べてください。
 
 【演習結果】
 モード: ${input.mode}
+sectionFilter: ${input.sectionFilter ?? 'なし'}
 出題数: ${input.totalQuestions}
 回答数: ${input.answeredCount}
 正解数: ${input.correctCount}
